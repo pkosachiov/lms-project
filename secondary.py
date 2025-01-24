@@ -31,38 +31,41 @@ class Board:
         image = pygame.transform.scale(load_image(main_player.img), (self.cell_size, self.cell_size))
         screen.blit(image, ((self.width//2)*self.cell_size + self.left, (self.height//2)*self.cell_size + self.top))
 
-    #функция для перемещения вверх
+    #функция для перемещения вниз
     def move_down(self):
-        for i in range(len(game_map)-1):
-            for j in range(len(game_map[i])):
-                game_map[i][j] = game_map[i+1][j]
-        for i in range(len(game_map[-1])):
-            game_map[-1][i] = generate_cell(all_cell)
-        return(game_map)
+        for i in range(len(self.board)-1):
+            for j in range(len(self.board[i])):
+                self.board[i][j] = self.board[i+1][j]
+        for i in range(len(self.board[-1])):
+            self.board[-1][i] = generate_cell(all_cell)
+        return(self.board)
 
+    #функция для перемещения вверх
     def move_up(self):
-        for i in range(len(game_map)-1, 0, -1):
-            for j in range(len(game_map[i])):
-                game_map[i][j] = game_map[i-1][j]
-        for i in range(len(game_map[0])):
-            game_map[0][i] = generate_cell(all_cell)
-        return(game_map)
+        for i in range(len(self.board)-1, 0, -1):
+            for j in range(len(self.board[i])):
+                self.board[i][j] = self.board[i-1][j]
+        for i in range(len(self.board[0])):
+            self.board[0][i] = generate_cell(all_cell)
+        return(self.board)
 
+    #функция для перемещения вправо
     def move_right(self):
-        for i in range(len(game_map)):
-            for j in range(len(game_map[i]) - 1):
-                game_map[i][j] = game_map[i][j + 1]
-        for i in range(len(game_map)):
-            game_map[i][-1] = generate_cell(all_cell)
-        return(game_map)
+        for i in range(len(self.board)):
+            for j in range(len(self.board[i]) - 1):
+                self.board[i][j] = self.board[i][j + 1]
+        for i in range(len(self.board)):
+            self.board[i][-1] = generate_cell(all_cell)
+        return(self.board)
 
+    #функция для перемещения влево
     def move_left(self):
-        for i in range(len(game_map)):
-            for j in range(len(game_map[i])-1, 0, -1):
-                game_map[i][j] = game_map[i][j - 1]
-        for i in range(len(game_map)):
-            game_map[i][0] = generate_cell(all_cell)
-        return(game_map)
+        for i in range(len(self.board)):
+            for j in range(len(self.board[i])-1, 0, -1):
+                self.board[i][j] = self.board[i][j - 1]
+        for i in range(len(self.board)):
+            self.board[i][0] = generate_cell(all_cell)
+        return(self.board)
 
 #класс с клетками
 class map_cell:
@@ -190,9 +193,6 @@ def debug_map(game_map):
 main_player = map_cell('player', 'игрок', './imgs/player.png', 1, 0)
 broken_tree = map_cell('broken_tree', 'сломанное дерево', './imgs/broken_tree.png', 1, 0)
 
-#карта игры
-game_map = []
-
 #загрузка данными клеток
 def generate_game_map(width, height):
     game_map = []
@@ -204,7 +204,7 @@ def generate_game_map(width, height):
 
 #функция открытия инвентаря
 def open_inventory(inventory):
-    for i in range(height_map-1):
+    for i in range(board.height-1):
         if len(inventory) < i:
             pass
         else:
@@ -212,15 +212,15 @@ def open_inventory(inventory):
                 win.addstr(i+1, 1, inventory[i].designation, curses.A_BOLD)
             else:
                 win.addstr(i+1, 1, inventory[i].designation)
-        if len(inventory) < i + height_map:
+        if len(inventory) < i + board.height:
             pass
         else:
-            if inventory[i + height_map - 1].preuse == True:
-                win.addstr(i+1, width_map // 3 * 2 - 1, inventory[i + height_map - 1].designation, curses.A_BOLD)
+            if inventory[i + board.height - 1].preuse == True:
+                win.addstr(i+1, board.width // 3 * 2 - 1, inventory[i + board.height - 1].designation, curses.A_BOLD)
             else:
-                win.addstr(i+1, width_map // 3 * 2 - 1, inventory[i + height_map - 1].designation)
-        win.addstr(height_map - 1, width_map // 2, "gold "+str(gold))
-        win.addstr(height_map, width_map // 2, "point "+str(points))
+                win.addstr(i+1, board.width // 3 * 2 - 1, inventory[i + board.height - 1].designation)
+        win.addstr(board.height - 1, board.width // 2, "gold "+str(gold))
+        win.addstr(board.height, board.width // 2, "point "+str(points))
         win.refresh()
 
 def select_item(inventory):
@@ -269,7 +269,7 @@ def select_item(inventory):
                 win.clear()
                 win.addstr(1, 1, inventory[used_item].game_name)
                 win.addstr(3, 0, inventory[used_item].description)
-                win.addstr(height_map, 0, 'число использований - ' + str(inventory[used_item].count_used))
+                win.addstr(board.height, 0, 'число использований - ' + str(inventory[used_item].count_used))
         for i in range(len(inventory)):
             if inventory[i].count_used <= 0:
                 if inventory[i].preuse == True:
@@ -369,13 +369,13 @@ while running:
                 end_game = True
                 running = False
             elif event.type == pygame.KEYDOWN:
-                if event.type == pygame.K_s:
-                    if game_map[height_map // 2 + 2][width_map // 3 + 4 + 1].name == 'tree':
-                        game_map[height_map // 2 + 2][width_map // 3 + 4 + 1] = copy.copy(broken_tree)
+                if event.key == pygame.K_s:
+                    if board.board[board.height // 2 + 1][board.width // 2].name == 'tree':
+                        board.board[board.height // 2 + 1][board.width // 2] = copy.copy(broken_tree)
                         hungry -= loss_hungry
                         water -= loss_water
                     else:
-                        move_down(game_map)
+                        board.move_down()
                         points += 1
                         if hungry > 0 and water > 0:
                             health_regeneration_timer += 1
@@ -385,13 +385,13 @@ while running:
                             health_degeneration_timer_for_water += 1
                         hungry -= loss_hungry
                         water -= loss_water
-                if event.type == pygame.K_w:
-                    if game_map[height_map // 2][width_map // 3 + 4 + 1].name == 'tree':
-                        game_map[height_map // 2][width_map // 3 + 4 + 1] = copy.copy(broken_tree)
+                if event.key == pygame.K_w:
+                    if board.board[board.height // 2 - 1][board.width // 2].name == 'tree':
+                        board.board[board.height // 2 - 1][board.width // 2] = copy.copy(broken_tree)
                         hungry -= loss_hungry
                         water -= loss_water
                     else:
-                        move_up(game_map)
+                        board.move_up()
                         points += 1
                         if hungry > 0 and water > 0:
                             health_regeneration_timer += 1
@@ -401,13 +401,13 @@ while running:
                             health_degeneration_timer_for_water += 1
                         hungry -= loss_hungry
                         water -= loss_water
-                if event.type == pygame.K_a:
-                    if game_map[height_map // 2 + 1][width_map // 3 + 4].name == 'tree':
-                        game_map[height_map // 2 + 1][width_map // 3 + 4] = copy.copy(broken_tree)
+                if event.key == pygame.K_a:
+                    if board.board[board.height // 2][board.width // 2 - 1].name == 'tree':
+                        board.board[board.height // 2][board.width // 2 - 1] = copy.copy(broken_tree)
                         hungry -= loss_hungry
                         water -= loss_water
                     else:
-                        move_left(game_map)
+                        board.move_left()
                         points += 1
                         if hungry > 0 and water > 0:
                             health_regeneration_timer += 1
@@ -417,13 +417,13 @@ while running:
                             health_degeneration_timer_for_water += 1
                         hungry -= loss_hungry
                         water -= loss_water
-                if event.type == pygame.K_d:
-                    if game_map[height_map // 2 + 1][width_map // 3 + 4 + 2].name == 'tree':
-                        game_map[height_map // 2 + 1][width_map // 3 + 4 + 2] = copy.copy(broken_tree)
+                if event.key == pygame.K_d:
+                    if board.board[board.height // 2][board.width // 2 + 1].name == 'tree':
+                        board.board[board.height // 2][board.width // 2 + 1] = copy.copy(broken_tree)
                         hungry -= loss_hungry
                         water -= loss_water
                     else:
-                        move_right(game_map)
+                        board.move_right()
                         points += 1
                         if hungry > 0 and water > 0:
                             health_regeneration_timer += 1
@@ -435,57 +435,57 @@ while running:
                         water -= loss_water
 
         #взаимодействие с миром
-        if board.board[board.height // 2 + 1][board.width // 2 + 1].name == 'broken_tree':
+        if board.board[board.height // 2][board.width // 2].name == 'broken_tree':
             for i in range(len(inventory)):
                 if inventory[i].name == 'void_in_inventory':
                     first_space_in_inventory = i
                     is_space = True
                     break
             if is_space == True:
-                board.board[board.height // 2 + 1][board.width // 2 + 1] = map_cell('floor', *all_cell['floor'])
-                board.board[board.height // 2 + 1][board.width // 2 + 1].x = width_map // 2 + 1
-                board.board[board.height // 2 + 1][board.width // 2 + 1].y = height_map // 2 + 1
+                board.board[board.height // 2][board.width // 2] = map_cell('floor', *all_cell['floor'])
+                board.board[board.height // 2][board.width // 2].x = board.width // 2
+                board.board[board.height // 2][board.width // 2].y = board.height // 2
                 inventory[first_space_in_inventory] = item('wood', *all_items['wood'])
                 points += 3
                 is_space = False
             else:
                 pass
-        if board.board[board.height // 2 + 1][board.width // 2 + 1].name == 'chest_1':
+        if board.board[board.height // 2][board.width // 2].name == 'chest_1':
             for i in range(len(inventory)):
                 if inventory[i].name == 'void_in_inventory':
                     first_space_in_inventory = i
                     is_space = True
                     break
             if is_space == True:
-                board.board[board.height // 2 + 1][board.width // 2 + 1] = map_cell('floor', *all_cell['floor'])
-                board.board[board.height // 2 + 1][board.width // 2 + 1].x = width_map // 2
-                board.board[board.height // 2 + 1][board.width // 2 + 1].y = height_map // 2
+                board.board[board.height // 2][board.width // 2] = map_cell('floor', *all_cell['floor'])
+                board.board[board.height // 2][board.width // 2].x = board.width // 2
+                board.board[board.height // 2][board.width // 2].y = board.height // 2
                 inventory[first_space_in_inventory] = generate_item(all_items, 'chest_1')
                 points += 5
                 gold += random.randint(20, 120)
                 is_space = False
             else:
                 pass
-        if board.board[board.height // 2 + 1][board.width // 2 + 1].name == 'chest_2':
+        if board.board[board.height // 2][board.width // 2].name == 'chest_2':
             for i in range(len(inventory)):
                 if inventory[i].name == 'void_in_inventory':
                     first_space_in_inventory = i
                     is_space = True
                     break
             if is_space == True:
-                board.board[board.height // 2 + 1][board.width // 2 + 1] = map_cell('floor', *all_cell['floor'])
-                board.board[board.height // 2 + 1][board.width // 2 + 1].x = width_map // 2
-                board.board[board.height // 2 + 1][board.width // 2 + 1].y = height_map // 2
+                board.board[board.height // 2][board.width // 2] = map_cell('floor', *all_cell['floor'])
+                board.board[board.height // 2][board.width // 2].x = board.width // 2
+                board.board[board.height // 2][board.width // 2].y = board.height // 2
                 inventory[first_space_in_inventory] = generate_item(all_items, 'chest_2')
                 points += 20
                 gold += random.randint(60, 360)
                 is_space = False
             else:
                 pass
-        if board.board[board.height // 2 + 1][board.width // 2 + 1].name == 'puddle':
-                board.board[board.height // 2 + 1][board.width // 2 + 1] = map_cell('floor', *all_cell['floor'])
-                board.board[board.height // 2 + 1][board.width // 2 + 1].x = width_map // 2
-                board.board[board.height // 2 + 1][board.width // 2 + 1].y = height_map // 2
+        if board.board[board.height // 2][board.width // 2].name == 'puddle':
+                board.board[board.height // 2][board.width // 2] = map_cell('floor', *all_cell['floor'])
+                board.board[board.height // 2][board.width // 2].x = board.width // 2
+                board.board[board.height // 2][board.width // 2].y = board.height // 2
                 points -= 1
                 water += 2
 

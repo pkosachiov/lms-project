@@ -105,8 +105,7 @@ all_items = {
         'popato': ('картошка', './imgs/popato.png', 'сырая, полусгнившая картошка', 1, 1, 20, -10),
         'piece_of_glass': ('осколок стекла', './imgs/piece_of_glass.png', 'осколок стекла. взять такой в руку будет больно...', 3, -1, 0, 0),
         'medic_pill': ('медицинская пилюля', './imgs/medic_pill.png', 'таблетка, которая обычно помогает избавится от боли', 1, 10, 0, 0),
-        'iron_sword': ('железный меч', './imgs/iron_sword.png', 'железный меч. Хлипкий, но все ещё полезно', 10, 0, 0, 0),
-        'wood': ('бревно', './imgs/wood.png', 'кусок дерева... ты что собрался ЭТО есть?', 1, -1, 5, 5),
+        'wood': ('бревно', './imgs/wood.png', 'кусок дерева...', 1, -1, 5, 5),
         'big_piece_of_glass': ('кусок стекла', './imgs/big_piece_of_glass.png', 'кусочек стекла.', 3, -1, 0, 0),
         'vase_of_glass': ('стеклянная ваза', './imgs/vase_of_glass.png', 'удобно собирать жидкости. даже пить из неё будто бы приятнее. жаль в ней даже воды нет...', 10, 0, 0, 0),
         'vase_of_glass_with_water': ('стеклянная ваза с водой', './imgs/vase_of_glass_with_water.png','та же ваза, та же вода, но пить из неё - сущее удовольствие', 10, 0, 0, 50),
@@ -123,7 +122,7 @@ all_crafts = (
     ('vase_of_glass', 'medic_water', 'vase_of_glass_with_medic_water'))
 
 #единица пустоты инвентаря
-void_in_inventory = item('void_in_inventory', 'Пусто', '-', 'отсек в вашем хранилище', 1, 0, 0, 0)
+void_in_inventory = item('void_in_inventory', 'Пусто', './imgs/void_in_inventory.png', 'отсек в вашем хранилище', 1, 0, 0, 0)
 
 #генератор клетки
 def generate_cell(all_cell):
@@ -179,8 +178,8 @@ def debug_map(game_map):
 #3 - обозначение на карте 4 - шанс выпадения на поле
 
 #main_player не включаем в all_cell, т.к. он не должен спавниться произвольно
-main_player = map_cell('player', 'игрок', '◯', 1, 0)
-broken_tree = map_cell('broken_tree', 'сломанное дерево', '✳', 1, 0)
+main_player = map_cell('player', 'игрок', './imgs/player.png', 1, 0)
+broken_tree = map_cell('broken_tree', 'сломанное дерево', './imgs/broken_tree.png', 1, 0)
 
 #карта игры
 game_map = []
@@ -424,57 +423,57 @@ while running:
                         water -= loss_water
 
         #взаимодействие с миром
-        if game_map[height_map // 2 + 1][width_map // 3 + 4 + 1].name == 'broken_tree':
+        if board.board[board.height // 2 + 1][board.width // 2 + 1].name == 'broken_tree':
             for i in range(len(inventory)):
                 if inventory[i].name == 'void_in_inventory':
                     first_space_in_inventory = i
                     is_space = True
                     break
             if is_space == True:
-                game_map[height_map // 2 + 1][width_map // 3 + 4 + 1] = map_cell(*all_cell[0])
-                game_map[height_map // 2 + 1][width_map // 3 + 4 + 1].x = width_map // 3 + 3
-                game_map[height_map // 2 + 1][width_map // 3 + 4 + 1].y = height_map // 2
-                inventory[first_space_in_inventory] = item(*all_items[5])
+                board.board[board.height // 2 + 1][board.width // 2 + 1] = map_cell('floor', *all_cell['floor'])
+                board.board[board.height // 2 + 1][board.width // 2 + 1].x = width_map // 2 + 1
+                board.board[board.height // 2 + 1][board.width // 2 + 1].y = height_map // 2 + 1
+                inventory[first_space_in_inventory] = item('wood', *all_items['wood'])
                 points += 3
                 is_space = False
             else:
                 pass
-        if game_map[height_map // 2 + 1][width_map // 3 + 4 + 1].name == 'chest_1':
+        if board.board[board.height // 2 + 1][board.width // 2 + 1].name == 'chest_1':
             for i in range(len(inventory)):
                 if inventory[i].name == 'void_in_inventory':
                     first_space_in_inventory = i
                     is_space = True
                     break
             if is_space == True:
-                game_map[height_map // 2 + 1][width_map // 3 + 4 + 1] = map_cell(*all_cell[0])
-                game_map[height_map // 2 + 1][width_map // 3 + 4 + 1].x = width_map // 3 + 3
-                game_map[height_map // 2 + 1][width_map // 3 + 4 + 1].y = height_map // 2
+                board.board[board.height // 2 + 1][board.width // 2 + 1] = map_cell('floor', *all_cell['floor'])
+                board.board[board.height // 2 + 1][board.width // 2 + 1].x = width_map // 2
+                board.board[board.height // 2 + 1][board.width // 2 + 1].y = height_map // 2
                 inventory[first_space_in_inventory] = generate_item(all_items, 'chest_1')
                 points += 5
                 gold += random.randint(20, 120)
                 is_space = False
             else:
                 pass
-        if game_map[height_map // 2 + 1][width_map // 3 + 4 + 1].name == 'chest_2':
+        if board.board[board.height // 2 + 1][board.width // 2 + 1].name == 'chest_2':
             for i in range(len(inventory)):
                 if inventory[i].name == 'void_in_inventory':
                     first_space_in_inventory = i
                     is_space = True
                     break
             if is_space == True:
-                game_map[height_map // 2 + 1][width_map // 3 + 4 + 1] = map_cell(*all_cell[0])
-                game_map[height_map // 2 + 1][width_map // 3 + 4 + 1].x = width_map // 3 + 3
-                game_map[height_map // 2 + 1][width_map // 3 + 4 + 1].y = height_map // 2
+                board.board[board.height // 2 + 1][board.width // 2 + 1] = map_cell('floor', *all_cell['floor'])
+                board.board[board.height // 2 + 1][board.width // 2 + 1].x = width_map // 2
+                board.board[board.height // 2 + 1][board.width // 2 + 1].y = height_map // 2
                 inventory[first_space_in_inventory] = generate_item(all_items, 'chest_2')
                 points += 20
                 gold += random.randint(60, 360)
                 is_space = False
             else:
                 pass
-        if game_map[height_map // 2 + 1][width_map // 3 + 4 + 1].name == 'puddle':
-                game_map[height_map // 2 + 1][width_map // 3 + 4 + 1] = map_cell(*all_cell[0])
-                game_map[height_map // 2 + 1][width_map // 3 + 4 + 1].x = width_map // 3 + 3
-                game_map[height_map // 2 + 1][width_map // 3 + 4 + 1].y = height_map // 2
+        if board.board[board.height // 2 + 1][board.width // 2 + 1].name == 'puddle':
+                board.board[board.height // 2 + 1][board.width // 2 + 1] = map_cell('floor', *all_cell['floor'])
+                board.board[board.height // 2 + 1][board.width // 2 + 1].x = width_map // 2
+                board.board[board.height // 2 + 1][board.width // 2 + 1].y = height_map // 2
                 points -= 1
                 water += 2
 

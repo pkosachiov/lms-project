@@ -29,7 +29,7 @@ class Board:
                 image = pygame.transform.scale(load_image(self.board[i][j].img), (self.cell_size, self.cell_size))
                 screen.blit(image, (j*self.cell_size + self.left, i*self.cell_size + self.top))
         image = pygame.transform.scale(load_image(main_player.img), (self.cell_size, self.cell_size))
-        screen.blit(image, ((self.width//2+1)*self.cell_size + self.left, (self.height//2+1)*self.cell_size + self.top))
+        screen.blit(image, ((self.width//2)*self.cell_size + self.left, (self.height//2)*self.cell_size + self.top))
 
     #функция для перемещения вверх
     def move_down(self):
@@ -123,6 +123,15 @@ all_crafts = (
 
 #единица пустоты инвентаря
 void_in_inventory = item('void_in_inventory', 'Пусто', './imgs/void_in_inventory.png', 'отсек в вашем хранилище', 1, 0, 0, 0)
+
+#функция для загрузки изображения
+def load_image(name, colorkey=None):
+    fullname = os.path.join(name)
+    # если файл не существует, то выходим
+    if not os.path.isfile(fullname):
+        return None
+    image = pygame.image.load(fullname)
+    return image
 
 #генератор клетки
 def generate_cell(all_cell):
@@ -317,7 +326,9 @@ is_space = False
 pygame.init()
 pygame.display.set_caption('main')
 #высота и ширина карты
-screen = pygame.display.set_mode(size)
+screen = pygame.display.set_mode(list(map(lambda x: x*board.cell_size, size)))
+
+screen.fill((0, 0, 0))
 
 running = True
 fps = 60
@@ -355,6 +366,7 @@ while running:
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                end_game = True
                 running = False
             elif event.type == pygame.KEYDOWN:
                 if event.type == pygame.K_s:
@@ -481,7 +493,6 @@ while running:
         board.render(screen)
 
         #загрузка экрана
-        screen.fill((0, 0, 0))
         clock.tick(fps)
         pygame.display.flip()
 

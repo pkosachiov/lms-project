@@ -204,24 +204,24 @@ def generate_game_map(width, height):
 
 #функция открытия инвентаря
 def open_inventory(inventory):
-    icon_size = (height - 1 + width) * board.cell_size // max_inventory
-    print(max_inventory, board.height*board.cell_size//icon_size)
-    for i in range(max_inventory//(board.height*board.cell_size//icon_size)):
-        print(i)
+    icon_size = height * width / max_inventory
+    for i in range(max_inventory//(board.height-1)):
         for j in range(board.height-1):
-            image = pygame.transform.scale(load_image(inventory[(max_inventory//(board.height-1))*i+j].img), (icon_size, icon_size))
-            screen.blit(image, (i*icon_size + board.top, j*icon_size + board.left))
+            image = pygame.transform.scale(load_image(board.board[(max_inventory//(board.height-1))*i+j].img), (board.cell_size, board.cell_size))
+            screen.blit(image, (j*board.cell_size + board.left, i*board.cell_size + board.top))
+            image = pygame.transform.scale(load_image(main_player.img), (board.cell_size, board.cell_size))
+            screen.blit(image, ((board.width//2)*board.cell_size + board.left, (board.height//2)*board.cell_size + board.top))
         if len(inventory) < i:
             pass
         else:
             if inventory[i].preuse == True:
                 pygame.draw.rect(screen, (255, 255, 255),
-                                (j*icon_size + board.left, i*icon_size + board.top,
-                                icon_size, icon_size), border)
+                                (j*board.cell_size + board.left, i*board.cell_size + board.top,
+                                board.cell_size, board.cell_size), border)
         text_surface = my_font.render(str("gold "+str(gold)), False, (255, 255, 255))
-        screen.blit(text_surface, (board.width * icon_size * 0.8 + board.left, board.height * icon_size + board.top - 30))
+        screen.blit(text_surface, (board.width * board.cell_size * 0.8 + board.left, board.height * board.cell_size + board.top - 30))
         text_surface = my_font.render(str("point "+str(points)), False, (255, 255, 255))
-        screen.blit(text_surface, (board.width * icon_size * 0.8 + board.left, board.height * icon_size + board.top - 60))
+        screen.blit(text_surface, (board.width * board.cell_size * 0.8 + board.left, board.height * board.cell_size + board.top - 60))
         pygame.display.flip()
 
 #выбор предмета

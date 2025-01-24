@@ -204,25 +204,27 @@ def generate_game_map(width, height):
 
 #функция открытия инвентаря
 def open_inventory(inventory):
-    for i in range(board.height-1):
+    icon_size = height * width / max_inventory
+    for i in range(max_inventory//(board.height-1)):
+        for j in range(board.height-1):
+            image = pygame.transform.scale(load_image(board.board[(max_inventory//(board.height-1))*i+j].img), (board.cell_size, board.cell_size))
+            screen.blit(image, (j*board.cell_size + board.left, i*board.cell_size + board.top))
+            image = pygame.transform.scale(load_image(main_player.img), (board.cell_size, board.cell_size))
+            screen.blit(image, ((board.width//2)*board.cell_size + board.left, (board.height//2)*board.cell_size + board.top))
         if len(inventory) < i:
             pass
         else:
             if inventory[i].preuse == True:
-                win.addstr(i+1, 1, inventory[i].designation, curses.A_BOLD)
-            else:
-                win.addstr(i+1, 1, inventory[i].designation)
-        if len(inventory) < i + board.height:
-            pass
-        else:
-            if inventory[i + board.height - 1].preuse == True:
-                win.addstr(i+1, board.width // 3 * 2 - 1, inventory[i + board.height - 1].designation, curses.A_BOLD)
-            else:
-                win.addstr(i+1, board.width // 3 * 2 - 1, inventory[i + board.height - 1].designation)
-        win.addstr(board.height - 1, board.width // 2, "gold "+str(gold))
-        win.addstr(board.height, board.width // 2, "point "+str(points))
-        win.refresh()
+                pygame.draw.rect(screen, (255, 255, 255),
+                                (j*board.cell_size + board.left, i*board.cell_size + board.top,
+                                board.cell_size, board.cell_size), border)
+        text_surface = my_font.render(str("gold "+str(gold)), False, (255, 255, 255))
+        screen.blit(text_surface, (board.width * board.cell_size * 0.8 + board.left, board.height * board.cell_size + board.top - 30))
+        text_surface = my_font.render(str("point "+str(points)), False, (255, 255, 255))
+        screen.blit(text_surface, (board.width * board.cell_size * 0.8 + board.left, board.height * board.cell_size + board.top - 60))
+        pygame.display.flip()
 
+#выбор предмета
 def select_item(inventory):
     global preused_item
     open_inventory(inventory)
@@ -314,6 +316,11 @@ gold = 0
 
 points = 0
 
+#инициальзация шрифта
+pygame.font.init()
+
+my_font = pygame.font.SysFont('Comic Sans MS', 30)
+
 #инвентарь и его заполнение
 inventory = []
 
@@ -321,6 +328,8 @@ for i in range(max_inventory):
     inventory.append(copy.copy(void_in_inventory))
 
 is_space = False
+
+
 
 #инициальзация экрана
 pygame.init()
@@ -433,6 +442,35 @@ while running:
                             health_degeneration_timer_for_water += 1
                         hungry -= loss_hungry
                         water -= loss_water
+                if event.key == pygame.K_i:
+                    preused_item = 0
+                    while True:
+                        used_item = select_item(inventory)
+                        if used_item != None:
+                            preused_item = used_item
+                            health += inventory[used_item].heal_health
+                            hungry += inventory[used_item].heal_hungry
+                            water += inventory[used_item].heal_water
+                            bonus_dmg += inventory[used_item].bonus_dmg
+                            if used_item != None:
+                                inventory[used_item].count_used -= 1
+                                for i in inventory:
+                                    i.preuse = False
+                                inventory[used_item].preuse = True
+
+                                #проверка на то, что больше ли стата чем её максимум
+                                if health > max_health:
+                                    health = max_health
+                                if hungry > max_hungry:
+                                    hungry = max_hungry
+                                if water > max_water:
+                                    water = max_water
+                                if hungry < 0:
+                                    hungry = 0
+                                if water < 0:
+                                    water = 0
+                        else:
+                            break
 
         #взаимодействие с миром
         if board.board[board.height // 2][board.width // 2].name == 'broken_tree':

@@ -202,27 +202,41 @@ def generate_game_map(width, height):
             game_map[i].append(generate_cell(all_cell))
     return(game_map)
 
-#функция открытия инвентаря
+# функция открытия инвентаря
 def open_inventory(inventory):
     icon_size = height * width / max_inventory
-    for i in range(max_inventory//(board.height-1)):
-        for j in range(board.height-1):
-            image = pygame.transform.scale(load_image(board.board[(max_inventory//(board.height-1))*i+j].img), (board.cell_size, board.cell_size))
-            screen.blit(image, (j*board.cell_size + board.left, i*board.cell_size + board.top))
-            image = pygame.transform.scale(load_image(main_player.img), (board.cell_size, board.cell_size))
-            screen.blit(image, ((board.width//2)*board.cell_size + board.left, (board.height//2)*board.cell_size + board.top))
-        if len(inventory) < i:
-            pass
-        else:
-            if inventory[i].preuse == True:
-                pygame.draw.rect(screen, (255, 255, 255),
-                                (j*board.cell_size + board.left, i*board.cell_size + board.top,
-                                board.cell_size, board.cell_size), border)
-        text_surface = my_font.render(str("gold "+str(gold)), False, (255, 255, 255))
-        screen.blit(text_surface, (board.width * board.cell_size * 0.8 + board.left, board.height * board.cell_size + board.top - 30))
-        text_surface = my_font.render(str("point "+str(points)), False, (255, 255, 255))
-        screen.blit(text_surface, (board.width * board.cell_size * 0.8 + board.left, board.height * board.cell_size + board.top - 60))
-        pygame.display.flip()
+
+    for i in range(board.height):  # Проходим по строкам
+        for j in range(board.width):  # Проходим по столбцам
+            inv_index = i * board.width + j  # Индекс элемента инвентаря
+            if inv_index < len(inventory):
+
+                # Загружаем изображение для текущего объекта инвентаря
+                image = pygame.transform.scale(load_image(inventory[inv_index].img),
+                                               (board.cell_size, board.cell_size))
+                screen.blit(image, (j * board.cell_size + board.left, i * board.cell_size + board.top))
+
+                # Если элемент инвентаря должен быть использован, рисуем рамку вокруг
+                if inventory[inv_index].preuse:
+                    pygame.draw.rect(screen, (255, 255, 255),
+                        (j * board.cell_size + board.left, i * board.cell_size + board.top,
+                         board.cell_size, board.cell_size), 3 )
+
+            # Отображаем информацию о золоте и очках
+            text_surface = my_font.render(f"gold {gold}", False, (255, 255, 255))
+            screen.blit(text_surface, (board.width * board.cell_size * 0.8 + board.left,
+                                       board.height * board.cell_size + board.top - 30))
+
+            text_surface = my_font.render(f"point {points}", False, (255, 255, 255))
+            screen.blit(text_surface, (board.width * board.cell_size * 0.8 + board.left,
+                                       board.height * board.cell_size + board.top - 60))
+
+    # Рисуем изображение для основного игрока
+    image = pygame.transform.scale(load_image(main_player.img), (board.cell_size, board.cell_size))
+    screen.blit(image, ((board.width // 2) * board.cell_size + board.left,
+                        (board.height // 2) * board.cell_size + board.top))
+
+    pygame.display.flip()  # Обновляем экран
 
 #выбор предмета
 def select_item(inventory):

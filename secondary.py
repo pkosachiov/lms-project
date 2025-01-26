@@ -166,7 +166,7 @@ def generate_item(all_items, subject_to_chance):
             all_items_rechance[i].chance = in_chest_1[i]
     if subject_to_chance == 'chest_2':
         for i in range(len(all_items)):
-            all_items_rechance.append(item(*all_items[i]))
+            all_items_rechance.append(item(list(all_items.keys())[i], *list(all_items.values())[i]))
             all_items_rechance[i].chance = in_chest_2[i]
             
 
@@ -174,7 +174,7 @@ def generate_item(all_items, subject_to_chance):
     
     for i in range(len(all_items_rechance)):
         if generate_number <= all_items_rechance[i].chance:
-            obj = item(*all_items[i])
+            obj = item(list(all_items.keys())[i], *list(all_items.values())[i])
             return(obj)
 
 #вывод карты со всеми дебаг названиями, дебаг вывод карты

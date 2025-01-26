@@ -204,7 +204,6 @@ def generate_game_map(width, height):
 
 # функция открытия инвентаря
 def open_inventory(inventory):
-    icon_size = height * width / max_inventory
 
     for i in range(board.height):  # Проходим по строкам
         for j in range(board.width):  # Проходим по столбцам
@@ -218,16 +217,16 @@ def open_inventory(inventory):
 
                 # Если элемент инвентаря должен быть использован, рисуем рамку вокруг
                 if inventory[inv_index].preuse:
-                    pygame.draw.rect(screen, (255, 255, 255),
+                    pygame.draw.rect(screen, (0, 0, 0),
                         (j * board.cell_size + board.left, i * board.cell_size + board.top,
                          board.cell_size, board.cell_size), 3 )
 
             # Отображаем информацию о золоте и очках
-            text_surface = my_font.render(f"gold {gold}", False, (255, 255, 255))
+            text_surface = my_font.render(f"gold {gold}", False, (0, 0, 0))
             screen.blit(text_surface, (board.width * board.cell_size * 0.8 + board.left,
                                        board.height * board.cell_size + board.top - 30))
 
-            text_surface = my_font.render(f"point {points}", False, (255, 255, 255))
+            text_surface = my_font.render(f"point {points}", False, (0, 0, 0))
             screen.blit(text_surface, (board.width * board.cell_size * 0.8 + board.left,
                                        board.height * board.cell_size + board.top - 60))
 
@@ -240,52 +239,78 @@ def open_inventory(inventory):
 
 #выбор предмета
 def select_item(inventory):
-    global preused_item
+    global preused_item, end_game, running
     open_inventory(inventory)
     for i in inventory:
         i.preuse = False
     inventory[preused_item].preuse = True
-    key = win.getch()
     while True:
-        key = win.getch()
-        if key == ord('i'):
-            return(None)
-            break
-        if key == ord('w'):
-            for i in range(len(inventory)):
-                if inventory[i].preuse == True:
-                    if i == 0:
-                        break
-                    else:
-                        inventory[i].preuse = False
-                        inventory[i-1].preuse = True
-                        break
-        if key == ord('s'):
-            for i in range(len(inventory)):
-                if inventory[i].preuse == True:
-                    if i == len(inventory) - 1:
-                        break
-                    else:
-                        inventory[i].preuse = False
-                        inventory[i+1].preuse = True
-                        break
-        if key == ord('e'):
-            for i in range(len(inventory)):
-                if inventory[i].preuse == True:
-                    return(i)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                end_game = True
+                running = False
+                return None
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_i:
+                    return(None)
                     break
-        if key == ord('f'):
-            key = win.getch()
-            while key != ord('f'):
-                key = win.getch()
-                for i in range(len(inventory)):
-                    if inventory[i].preuse == True:
-                        used_item = i
-                        break
-                win.clear()
-                win.addstr(1, 1, inventory[used_item].game_name)
-                win.addstr(3, 0, inventory[used_item].description)
-                win.addstr(board.height, 0, 'число использований - ' + str(inventory[used_item].count_used))
+                elif event.key == pygame.K_a:
+                    for i in range(len(inventory)):
+                        if inventory[i].preuse == True:
+                            if i == 0:
+                                break
+                            else:
+                                inventory[i].preuse = False
+                                inventory[i-1].preuse = True
+                                break
+                elif event.key == pygame.K_d:
+                    for i in range(len(inventory)):
+                        if inventory[i].preuse == True:
+                            if i == len(inventory) - 1:
+                                break
+                            else:
+                                inventory[i].preuse = False
+                                inventory[i+1].preuse = True
+                                break
+                elif event.key == pygame.K_e:
+                    for i in range(len(inventory)):
+                        if inventory[i].preuse == True:
+                            return(i)
+                            break
+                elif event.key == pygame.K_f:
+                    screen.fill((0, 0, 0))
+                    pressf = False
+                    while not pressf:
+
+                        for i in range(len(inventory)):
+                            if inventory[i].preuse == True:
+                                used_item = i
+                                break
+
+                        text_surface = my_font.render(inventory[used_item].game_name, False, (255, 255, 255))
+                        screen.blit(text_surface, (board.width * board.cell_size * 0.3 + board.left,
+                                                30 + board.top))
+
+                        text_surface = my_font.render(inventory[used_item].description, False, (255, 255, 255))
+                        screen.blit(text_surface, (board.width * board.cell_size * 0.3 + board.left,
+                                                60 + board.top))
+                        text_surface = my_font.render(f"число использований - {inventory[used_item].count_used}", False, (255, 255, 255))
+                        screen.blit(text_surface, (board.width * board.cell_size * 0.5 + board.left,
+                                       board.height * board.cell_size + board.top - 30))
+
+                        for event in pygame.event.get():
+                            if event.type == pygame.QUIT:
+                                end_game = True
+                                running = False
+                                return None
+                            elif event.type == pygame.KEYDOWN:
+                                if event.key == pygame.K_f:
+                                    screen.fill((0, 0, 0))
+                                    board.render(screen)
+                                    pressf = True
+                                    
+                        clock.tick(fps)
+                        pygame.display.flip()
         for i in range(len(inventory)):
             if inventory[i].count_used <= 0:
                 if inventory[i].preuse == True:
@@ -293,9 +318,9 @@ def select_item(inventory):
                     inventory[i].preuse = True
                 else:
                     inventory[i] = copy.copy(void_in_inventory)
-        win.clear()
         open_inventory(inventory)
-        win.timeout(100)
+        clock.tick(fps)
+        pygame.display.flip()
 
 size = width, height = 15, 15
 
@@ -465,7 +490,6 @@ while running:
                             health += inventory[used_item].heal_health
                             hungry += inventory[used_item].heal_hungry
                             water += inventory[used_item].heal_water
-                            bonus_dmg += inventory[used_item].bonus_dmg
                             if used_item != None:
                                 inventory[used_item].count_used -= 1
                                 for i in inventory:

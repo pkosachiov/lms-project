@@ -278,26 +278,53 @@ def select_item(inventory):
                             return(i)
                             break
                 elif event.key == pygame.K_f:
-                    screen.fill((0, 0, 0))
+                    screen.fill((0, 0, 0))  # Очистка экрана
                     pressf = False
                     while not pressf:
-
                         for i in range(len(inventory)):
                             if inventory[i].preuse == True:
                                 used_item = i
                                 break
 
-                        text_surface = my_font.render(inventory[used_item].game_name, False, (255, 255, 255))
+                        # Отображаем название предмета
+                        text_surface = my_font.render(inventory[used_item].game_name, False, 
+                                                      (255, 255, 255))
                         screen.blit(text_surface, (board.width * board.cell_size * 0.3 + board.left,
-                                                30 + board.top))
+                                                   30 + board.top))
 
-                        text_surface = my_font.render(inventory[used_item].description, False, (255, 255, 255))
-                        screen.blit(text_surface, (board.width * board.cell_size * 0.3 + board.left,
-                                                60 + board.top))
-                        text_surface = my_font.render(f"число использований - {inventory[used_item].count_used}", False, (255, 255, 255))
-                        screen.blit(text_surface, (board.width * board.cell_size * 0.5 + board.left,
-                                       board.height * board.cell_size + board.top - 30))
+                        # Отображаем описание с переносом строк
 
+                        x_pos = board.width * board.cell_size * 0.3 + board.left
+                        y_pos = 80 + board.top
+
+                        # Разбиваем описание на слова
+                        words = inventory[used_item].description.split(' ')
+
+                        line = ""
+                        for word in words:
+                            # Если в строке меньше 4 слов добавляем текущее слово
+                            if len(line.split()) < 4:
+                                line += ' ' + word if line else word
+                            else:
+                                # Если строка содержит 4 слова выводим ее и начинаем новую строку
+                                text_surface = my_font.render(line, False, (255, 255, 255))
+                                screen.blit(text_surface, (x_pos, y_pos))
+                                y_pos += 32
+                                line = word  # Начинаем новую строку с текущего слова
+
+                        # Выводим оставшиеся слова в строке
+                        if line:
+                            text_surface = my_font.render(line, False, (255, 255, 255))
+                            screen.blit(text_surface, (x_pos, y_pos))
+                            y_pos += 32
+
+                        # Отображаем количество использований
+                        y_pos += 40
+                        text_surface = my_font.render(f"Число использований: {inventory[used_item].count_used}", False,
+                                                      (255, 255, 255))
+                        screen.blit(text_surface, (x_pos, y_pos))
+
+                        # Обработка событий
                         for event in pygame.event.get():
                             if event.type == pygame.QUIT:
                                 end_game = True
@@ -308,7 +335,7 @@ def select_item(inventory):
                                     screen.fill((0, 0, 0))
                                     board.render(screen)
                                     pressf = True
-                                    
+
                         clock.tick(fps)
                         pygame.display.flip()
         for i in range(len(inventory)):
@@ -321,6 +348,24 @@ def select_item(inventory):
         open_inventory(inventory)
         clock.tick(fps)
         pygame.display.flip()
+
+
+def display_stats(screen, my_font, health, hungry, water, max_health, max_hungry, max_water):
+    # Отображение здоровья
+    health_text = f"HP: {health}/{max_health}"
+    health_surface = my_font.render(health_text, False, (255, 255, 255))
+    screen.blit(health_surface, (10, 10))
+
+    # Отображение еды
+    hungry_text = f"Food: {hungry}/{max_hungry}"
+    hungry_surface = my_font.render(hungry_text, False, (255, 255, 255))
+    screen.blit(hungry_surface, (10, 50))
+
+    # Отображение воды
+    water_text = f"Water: {water}/{max_water}"
+    water_surface = my_font.render(water_text, False, (255, 255, 255))
+    screen.blit(water_surface, (10, 90))
+
 
 size = width, height = 15, 15
 
@@ -567,6 +612,9 @@ while running:
 
         #вывод карты с игроком
         board.render(screen)
+
+        # Отображаем статы игрока
+        display_stats(screen, my_font, health, hungry, water, max_health, max_hungry, max_water)
 
         #загрузка экрана
         clock.tick(fps)

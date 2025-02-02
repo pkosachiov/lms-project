@@ -37,7 +37,7 @@ class Board:
             for j in range(len(self.board[i])):
                 self.board[i][j] = self.board[i+1][j]
         for i in range(len(self.board[-1])):
-            self.board[-1][i] = generate_cell(all_cell)
+            self.board[-1][i] = generate_cell(all_cell, world)
         return(self.board)
 
     #функция для перемещения вверх
@@ -46,7 +46,7 @@ class Board:
             for j in range(len(self.board[i])):
                 self.board[i][j] = self.board[i-1][j]
         for i in range(len(self.board[0])):
-            self.board[0][i] = generate_cell(all_cell)
+            self.board[0][i] = generate_cell(all_cell, world)
         return(self.board)
 
     #функция для перемещения вправо
@@ -55,7 +55,7 @@ class Board:
             for j in range(len(self.board[i]) - 1):
                 self.board[i][j] = self.board[i][j + 1]
         for i in range(len(self.board)):
-            self.board[i][-1] = generate_cell(all_cell)
+            self.board[i][-1] = generate_cell(all_cell, world)
         return(self.board)
 
     #функция для перемещения влево
@@ -64,17 +64,16 @@ class Board:
             for j in range(len(self.board[i])-1, 0, -1):
                 self.board[i][j] = self.board[i][j - 1]
         for i in range(len(self.board)):
-            self.board[i][0] = generate_cell(all_cell)
+            self.board[i][0] = generate_cell(all_cell, world)
         return(self.board)
 
 #класс с клетками
 class map_cell:
 #имя в дебаге, имя в игре, обозначение на карте, шанс выпадения
-    def __init__(self, name, game_name, img, color, chance, x = None, y = None):
+    def __init__(self, name, game_name, img, chance, x = None, y = None):
         self.name = name
         self.game_name = game_name
         self.img = img
-        self.color = color
         self.chance = chance
         self.x = x
         self.y = y
@@ -95,11 +94,15 @@ class item:
 
 #все клетки
 all_cell = {
-        'floor': ('пол', './imgs/floor.png', 1, 300),
-        'chest_1': ('сундук', './imgs/chest.png', 1, 303),
-        'puddle': ('лужа', './imgs/puddle.png', 1, 310),
-        'tree': ('дерево', './imgs/tree.png', 1, 330),
-        'chest_2': ('каменный сундук', './imgs/stone-chest.png', 2, 335)
+        'stone_floor': ('каменный пол', './imgs/stone_floor.png', (-1, 300)),
+        'floor': ('пол', './imgs/floor.png', (300, -1)),
+        'chest_1': ('сундук', './imgs/chest.png', (3, 10)),
+        'puddle': ('лужа', './imgs/puddle.png', (7, -1)),
+        'stone_puddle': ('подземная лужа', './imgs/stone_puddle.png', (-1, 10)),
+        'tree': ('дерево', './imgs/tree.png', (20, -1)),
+        'chest_2': ('каменный сундук', './imgs/stone-chest.png', (2, 5)),
+        'luke': ('люк', './imgs/luke.png', (2, -1)),
+        'stone_luke': ('подземная лужа', './imgs/stone_luke.png', (-1, 2))
         }
 
 #все предметы
@@ -137,13 +140,17 @@ def load_image(name, colorkey=None):
     return image
 
 #генератор клетки
-def generate_cell(all_cell):
+def generate_cell(all_cell, world):
+    #создает список шанса спавна
+    chances = [(list(all_cell.keys())[0], all_cell[list(all_cell.keys())[0]][2][world])]
+    for key in list(all_cell.keys())[1:]:
+        chances.append((key, all_cell[key][2][world]+chances[-1][1]))
     #ставит рандомно переменную, которая считается для создания клетки
-    generate_number = random.randint(0, list(all_cell.values())[-1][3])
-    
-    for i in list(all_cell.keys()):
-        if generate_number <= all_cell[i][3]:
-            obj = map_cell(i, *all_cell[i])
+    generate_number = random.randint(0, chances[-1][1])
+
+    for i in chances:
+        if generate_number <= i[1]:
+            obj = map_cell(i[0], *all_cell[i[0]])
             return(obj)
 #генератор предмета
 def generate_item(all_items, subject_to_chance):
@@ -162,7 +169,7 @@ def generate_item(all_items, subject_to_chance):
             in_chest_2.append(max_chance)
     if subject_to_chance == 'chest_1':
         for i in range(len(all_items)):
-            all_items_rechance.append(item(*all_items[i]))
+            all_items_rechance.append(item(list(all_items.keys())[i], *list(all_items.values())[i]))
             all_items_rechance[i].chance = in_chest_1[i]
     if subject_to_chance == 'chest_2':
         for i in range(len(all_items)):
@@ -199,8 +206,18 @@ def generate_game_map(width, height):
     for i in range(height):
         game_map.append([])
         for j in range(width):
-            game_map[i].append(generate_cell(all_cell))
+            game_map[i].append(generate_cell(all_cell, world))
     return(game_map)
+
+def replace_interact(board):
+    if world == 0:
+        board.board[board.height // 2][board.width // 2] = map_cell('floor', *all_cell['floor'])
+        board.board[board.height // 2][board.width // 2].x = board.width // 2
+        board.board[board.height // 2][board.width // 2].y = board.height // 2
+    elif world == 1:
+        board.board[board.height // 2][board.width // 2] = map_cell('stone_floor', *all_cell['stone_floor'])
+        board.board[board.height // 2][board.width // 2].x = board.width // 2
+        board.board[board.height // 2][board.width // 2].y = board.height // 2
 
 # функция открытия инвентаря
 def open_inventory(inventory):
@@ -222,11 +239,11 @@ def open_inventory(inventory):
                          board.cell_size, board.cell_size), 3 )
 
             # Отображаем информацию о золоте и очках
-            text_surface = my_font.render(f"gold {gold}", False, (0, 0, 0))
+            text_surface = my_font.render(f"gold {gold}", False, (255, 255, 255))
             screen.blit(text_surface, (board.width * board.cell_size * 0.8 + board.left,
                                        board.height * board.cell_size + board.top - 30))
 
-            text_surface = my_font.render(f"point {points}", False, (0, 0, 0))
+            text_surface = my_font.render(f"point {points}", False, (255, 255, 255))
             screen.blit(text_surface, (board.width * board.cell_size * 0.8 + board.left,
                                        board.height * board.cell_size + board.top - 60))
 
@@ -366,6 +383,7 @@ def display_stats(screen, my_font, health, hungry, water, max_health, max_hungry
     water_surface = my_font.render(water_text, False, (255, 255, 255))
     screen.blit(water_surface, (10, 90))
 
+world = 0
 
 size = width, height = 15, 15
 
@@ -563,9 +581,7 @@ while running:
                     is_space = True
                     break
             if is_space == True:
-                board.board[board.height // 2][board.width // 2] = map_cell('floor', *all_cell['floor'])
-                board.board[board.height // 2][board.width // 2].x = board.width // 2
-                board.board[board.height // 2][board.width // 2].y = board.height // 2
+                replace_interact(board)
                 inventory[first_space_in_inventory] = item('wood', *all_items['wood'])
                 points += 3
                 is_space = False
@@ -578,9 +594,7 @@ while running:
                     is_space = True
                     break
             if is_space == True:
-                board.board[board.height // 2][board.width // 2] = map_cell('floor', *all_cell['floor'])
-                board.board[board.height // 2][board.width // 2].x = board.width // 2
-                board.board[board.height // 2][board.width // 2].y = board.height // 2
+                replace_interact(board)
                 inventory[first_space_in_inventory] = generate_item(all_items, 'chest_1')
                 points += 5
                 gold += random.randint(20, 120)
@@ -594,9 +608,7 @@ while running:
                     is_space = True
                     break
             if is_space == True:
-                board.board[board.height // 2][board.width // 2] = map_cell('floor', *all_cell['floor'])
-                board.board[board.height // 2][board.width // 2].x = board.width // 2
-                board.board[board.height // 2][board.width // 2].y = board.height // 2
+                replace_interact(board)
                 inventory[first_space_in_inventory] = generate_item(all_items, 'chest_2')
                 points += 20
                 gold += random.randint(60, 360)
@@ -604,11 +616,22 @@ while running:
             else:
                 pass
         if board.board[board.height // 2][board.width // 2].name == 'puddle':
-                board.board[board.height // 2][board.width // 2] = map_cell('floor', *all_cell['floor'])
-                board.board[board.height // 2][board.width // 2].x = board.width // 2
-                board.board[board.height // 2][board.width // 2].y = board.height // 2
-                points -= 1
-                water += 2
+            replace_interact(board)
+            points -= 1
+            water += 2
+        if board.board[board.height // 2][board.width // 2].name == 'stone_puddle':
+            replace_interact(board)
+            points -= 10
+            water += 20
+            health -= 5
+        if board.board[board.height // 2][board.width // 2].name == 'luke':
+            points += 1000
+            world = 1
+            board.board = generate_game_map(width, height)
+        if board.board[board.height // 2][board.width // 2].name == 'stone_luke':
+            points += 1000
+            world = 0
+            board.board = generate_game_map(width, height)
 
         #вывод карты с игроком
         board.render(screen)

@@ -444,6 +444,26 @@ screen.fill((0, 0, 0))
 running = True
 fps = 60
 clock = pygame.time.Clock()
+
+epilog = True
+
+#начальный экран
+while epilog:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            end_game = True
+            running = False
+            epilog = False
+        elif event.type == pygame.KEYDOWN:
+            epilog = False
+    text = ["Ходить на w/a/s/d", "открыть инвентарь i", "применить предмет e", "осмотреть предмет f"]
+    for i in range(len(text)):
+        text_surface = my_font.render(text[i],
+        False,
+        (255, 255, 255))
+        screen.blit(text_surface, (board.width*board.cell_size//3, board.height*board.cell_size//3+i*board.cell_size))
+    pygame.display.flip()
+
 while running:
 
     while not end_game:
@@ -646,6 +666,14 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        screen.fill((0, 0, 0))
+        text = ["ENDGAME!", f"gold {gold}", f"points {points}"]
+        for i in range(len(text)):
+            text_surface = my_font.render(text[i],
+            False,
+            (255, 255, 255))
+            screen.blit(text_surface, (board.width*board.cell_size//3, board.height*board.cell_size//3+i*board.cell_size))
+        pygame.display.flip()
 
 #вывод статов
 #нужно вывести количество очков и gold на экран проигрыша

@@ -3,6 +3,7 @@ import pygame
 import random
 import copy
 import os
+import pickle
 
 class Board:
     # создание поля
@@ -199,6 +200,22 @@ def debug_map(game_map):
 #main_player не включаем в all_cell, т.к. он не должен спавниться произвольно
 main_player = map_cell('player', 'игрок', './imgs/player.png', 1, 0)
 broken_tree = map_cell('broken_tree', 'сломанное дерево', './imgs/broken_tree.png', 1, 0)
+
+#функция загрузки игры
+def load_game():
+    if os.path.exists('./save_game.pickle'):
+        with open('./save_game.pickle', 'rb') as f:
+            saved_game = pickle.load(f)
+            print(saved_game)
+        return saved_game
+    else:
+        return None 
+
+#функция сохранения игры
+def save_game(board, health, hungry, water, inventory, world):
+    data = [board, health, hungry, water, inventory, world]
+    with open('./save_game.pickle', 'wb') as f:
+        pickle.dump(data, f)
 
 #загрузка данными клеток
 def generate_game_map(width, height):
@@ -447,6 +464,11 @@ clock = pygame.time.Clock()
 
 epilog = True
 
+#загрузка сейва
+game = load_game()
+if game != None:
+    board, health, hungry, water, inventory, world = load_game()
+
 #начальный экран
 while epilog:
     for event in pygame.event.get():
@@ -496,6 +518,7 @@ while running:
             water = 0
 
         for event in pygame.event.get():
+            save_game(board, health, hungry, water, inventory, world)
             if event.type == pygame.QUIT:
                 end_game = True
                 running = False
@@ -663,6 +686,8 @@ while running:
         clock.tick(fps)
         pygame.display.flip()
 
+    if os.path.exists('./save_game.pickle') and health <= 0:
+        os.remove('./save_game.pickle')
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False

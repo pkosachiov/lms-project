@@ -400,6 +400,149 @@ def display_stats(screen, my_font, health, hungry, water, max_health, max_hungry
     water_surface = my_font.render(water_text, False, (255, 255, 255))
     screen.blit(water_surface, (10, 90))
 
+
+это человек писал сам или нейронка или он списал откуда-то
+def select_inventory_item(inventory):
+    # Выбор предмета из инвентаря (W/S для перемещения, ENTER — выбор, ESC — отмена)
+    selected_index = 0
+    inv_font = pygame.font.SysFont(None, 30)
+    selecting = True
+    while selecting:
+        screen.fill((0, 0, 0))
+        # Отрисовка списка инвентаря
+        for i, item in enumerate(inventory):
+            color = (255, 0, 0) if i == selected_index else (255, 255, 255)
+            text = inv_font.render(f"{i+1}: {item.name} ({item.name[0]})", True, color)
+            screen.blit(text, (50, 50 + i * 30))
+        pygame.display.flip()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                end_game = True
+                running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_w:
+                    selected_index = (selected_index - 1) % len(inventory)
+                elif event.key == pygame.K_s:
+                    selected_index = (selected_index + 1) % len(inventory)
+                elif event.key == pygame.K_RETURN:
+                    return selected_index
+                elif event.key == pygame.K_ESCAPE:
+                    return None
+        pygame.display.flip()
+
+
+def crafting_mode():
+    # Начальные слоты крафта: [Основной, Побочный, Итог]
+    pre_craft = [True, False, False]
+    craft_item_1 = copy.copy(void_in_inventory)
+    craft_item_2 = copy.copy(void_in_inventory)
+    crafted_item = copy.copy(void_in_inventory)
+
+    craft_font = pygame.font.SysFont(None, 30)
+    item_font = pygame.font.SysFont(None, 40)
+
+    running = True
+    while running:
+        screen.fill((0, 0, 0))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                end_game = True
+                running = False
+            if event.type == pygame.KEYDOWN:
+                # Выход из режима крафта (C или ESC)
+                if event.key in (pygame.K_c, pygame.K_ESCAPE):
+                    running = False
+                # Очистка интерфейса крафта (I)
+                if event.key == pygame.K_i:
+                    craft_item_1 = copy.copy(void_in_inventory)
+                    craft_item_2 = copy.copy(void_in_inventory)
+                    crafted_item = copy.copy(void_in_inventory)
+                    pre_craft = [True, False, False]
+                # Переключение активного слота крафта (A/LEFT и D/RIGHT)
+                if event.key in (pygame.K_a, pygame.K_LEFT):
+                    for i in range(len(pre_craft)):
+                        if pre_craft[i]:
+                            if i > 0:
+                                pre_craft[i] = False
+                                pre_craft[i - 1] = True
+                            break
+                if event.key in (pygame.K_d, pygame.K_RIGHT):
+                    for i in range(len(pre_craft)):
+                        if pre_craft[i]:
+                            if i < len(pre_craft) - 1:
+                                pre_craft[i] = False
+                                pre_craft[i + 1] = True
+                            break
+                # Если нажата E и активен слот ингредиента выбираем предмет из инвентаря
+                if event.key == pygame.K_e and not pre_craft[2]:
+                    selected = select_inventory_item(inventory)
+                    if selected is not None:
+                        chosen_item = inventory[selected]
+                        if pre_craft[0]:
+                            craft_item_1 = copy.copy(chosen_item)
+                        elif pre_craft[1]:
+                            craft_item_2 = copy.copy(chosen_item)
+                # Если нажата E в слоте итог пытаемся скрафтить
+                if event.key == pygame.K_e and pre_craft[2]:
+                    recipe_found = False
+                    for rec in all_crafts:
+                        if craft_item_1.name == rec[0] and craft_item_2.name == rec[1]:
+                            recipe_found = True
+                            for itm in all_items:
+                                if itm == rec[2]:
+                                    data = all_items[itm]
+                                    print(data)
+                                    crafted_item = item(itm, data[0], data[1], data[2], data[3], data[4], data[5],
+                                                        data[6])
+                            break
+                    if recipe_found and crafted_item.name != "void_in_inventory":
+                        needed = 2 if craft_item_1.name == craft_item_2.name else 1
+                        count_item = sum(1 for it in inventory if it.name == craft_item_1.name)
+                        if count_item >= needed:
+                            removed1 = False
+                            removed2 = False
+                            for i, it in enumerate(inventory):
+                                if not removed1 and it.name == craft_item_1.name:
+                                    inventory[i] = copy.copy(void_in_inventory)
+                                    removed1 = True
+                                elif not removed2 and it.name == craft_item_2.name:
+                                    inventory[i] = copy.copy(void_in_inventory)
+                                    removed2 = True
+                            for i, it in enumerate(inventory):
+                                if it.name == void_in_inventory.name:
+                                    inventory[i] = copy.copy(crafted_item)
+                                    break
+                            craft_item_1 = copy.copy(void_in_inventory)
+                            craft_item_2 = copy.copy(void_in_inventory)
+                            crafted_item = copy.copy(void_in_inventory)
+                            pre_craft = [True, False, False]
+                        else:
+                            crafted_item = copy.copy(void_in_inventory)
+        # Отрисовка интерфейса крафта
+        main_box = pygame.Rect(50, 200, 60, 60)
+        sec_box = pygame.Rect(200, 200, 60, 60)
+        result_box = pygame.Rect(350, 200, 60, 60)
+
+        def draw_box(rect, active):
+            color = (255, 255, 255) if active else (180, 180, 180)
+            width = 3 if active else 1
+            pygame.draw.rect(screen, color, rect, width)
+
+        draw_box(main_box, pre_craft[0])
+        draw_box(sec_box, pre_craft[1])
+        draw_box(result_box, pre_craft[2])
+
+        screen.blit(craft_font.render("Основной", True, (255, 255, 255, 255)), (main_box.x, main_box.y - 30))
+        screen.blit(craft_font.render("Побочный", True, (255, 255, 255, 255)), (sec_box.x, sec_box.y - 30))
+        screen.blit(craft_font.render("Итог", True, (255, 255, 255, 255)), (result_box.x, result_box.y - 30))
+
+        screen.blit(item_font.render(craft_item_1.name[0], True, (255, 255, 255, 255)), (main_box.x + 15, main_box.y + 10))
+        screen.blit(item_font.render(craft_item_2.name[0], True, (255, 255, 255, 255)), (sec_box.x + 15, sec_box.y + 10))
+        screen.blit(item_font.render(crafted_item.name[0], True, (255, 255, 255, 255)), (result_box.x + 15, result_box.y + 10))
+
+        pygame.display.flip()
+
+
 world = 0
 
 size = width, height = 15, 15

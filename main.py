@@ -757,6 +757,9 @@ while running:
                                     water = 0
                         else:
                             break
+                if event.key == pygame.K_c:
+                    crafting_mode()
+
 
         #взаимодействие с миром
         if board.board[board.height // 2][board.width // 2].name == 'broken_tree':

@@ -620,7 +620,7 @@ while epilog:
             epilog = False
         elif event.type == pygame.KEYDOWN:
             epilog = False
-    text = ["Ходить на w/a/s/d", "открыть инвентарь i", "применить предмет e", "осмотреть предмет f"]
+    text = ["Ходить на w/a/s/d", "открыть инвентарь i", "применить предмет e", "осмотреть предмет f", "крафт на c"]
     for i in range(len(text)):
         text_surface = my_font.render(text[i],
         False,

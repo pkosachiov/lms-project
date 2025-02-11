@@ -401,7 +401,6 @@ def display_stats(screen, my_font, health, hungry, water, max_health, max_hungry
     screen.blit(water_surface, (10, 90))
 
 
-это человек писал сам или нейронка или он списал откуда-то
 def select_inventory_item(inventory):
     # Выбор предмета из инвентаря (W/S для перемещения, ENTER — выбор, ESC — отмена)
     selected_index = 0
